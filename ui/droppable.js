@@ -53,7 +53,20 @@ $.widget( "ui.droppable", {
 
 		this.isover = false;
 		this.isout = true;
-
+		if(o.iframeFix)
+		{
+			windowTest = this.window.length && this.window.length > 0 ? this.window[0] : this.window;
+			if(windowTest !== undefined && windowTest !== null)
+			{
+				this.iframe = windowTest.frameElement
+				if(this.iframe === undefined || this.iframe === null)
+				{
+					throw "[Droppable] You are specifing iframe fix for a object that does not exist inside a iframe";
+				}
+			} else {
+				throw "[IframeFix] Window is not defined.. lets blow up because we are unable to find the iframe.";
+			}
+		}
 		this.accept = $.isFunction( accept ) ? accept : function( d ) {
 			return d.is( accept );
 		};
@@ -244,6 +257,25 @@ $.ui.intersect = (function() {
 			t = droppable.offset.top,
 			r = l + droppable.proportions().width,
 			b = t + droppable.proportions().height;
+   
+    	if (droppable.options.iframeFix)
+    	{
+        var iframeOffset = $(droppable.iframe).offset(),
+      		iframeWidth = $(droppable.iframe).width(),
+      		iframeHeight = $(droppable.iframe).height(),
+      		iframeScrollTop = $(droppable.iframe).contents().scrollTop(),
+      		iframeScrollLeft = $(droppable.iframe).contents().scrollLeft();
+        
+		    if (y1 < iframeOffset.top || x1 < iframeOffset.left || x1 + draggable.helperProportions.width > iframeOffset.left + iframeWidth || y1 + draggable.helperProportions.height > iframeOffset.top + iframeHeight) // outside iframe;
+      	{
+        	return false;
+      	}
+      	l = (iframeOffset.left + droppable.offset.left) - iframeScrollLeft;
+      	r = l + droppable.proportions().width;
+      	t = (iframeOffset.top + droppable.offset.top) - iframeScrollTop;
+      	b = t + droppable.proportions().height;
+    	}
+
 
 		switch ( toleranceMode ) {
 		case "fit":
